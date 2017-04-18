@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html class="full" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Window Messenger Example</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+
+	<!-- jQuery UI CSS -->
+	<link href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css" rel="stylesheet" />
+
+	<style>
+		body {
+			margin-top: 50px;
+			margin-bottom: 50px;
+			background: none;
+		}
+
+		iframe {
+			border: none;
+			width: 100%;
+		}
+
+		td {
+			padding: 4px;
+		}
+
+		div.main {
+			background-color: #ffffff;
+			border: 1px solid #000000;
+			border-radius: 6px;
+			padding: 6px 10px;
+		}
+
+		.full {
+			background-color: #dddddd;
+			-webkit-background-size: cover;
+			-moz-background-size: cover;
+			-o-background-size: cover;
+			background-size: cover;
+		}
+	</style>
+
+
+
+	<!-- jQuery -->
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+	<!-- Bootstrap Core JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<!-- jQuery UI - after bootstrap -->
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+
+	<script src="http://cfapplication.com/projects/windowMessenger/windowMessenger.js"></script>
+</head>
+
+<body>
+
+	<div class="container main">
+		<div class="row">
+			<div class="col-md-6 col-md-8 col-sm-10 col-xs-12">
+				<h1>Frame Loader Example</h1>
+				<p>
+					This is an example of the <strong>frameLoader</strong> widget. The <strong>frameLoader</strong> widget
+					is meant to handle automatically resizing an iFrame based on the content height of the iFrame. If the
+					height of the iFrame is known at different widths, then this could be handled purely through CSS and
+					media queries. <strong>frameLoader</strong> is meant to handle those scenarios where the height of the
+					iFrame content may not be known.
+				</p>
+
+                <div style="margin-bottom: 30px;">
+					<script src="../frameLoader.js" data-source="frame.html" data-margin="20" data-height="900"></script>
+                </div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
