@@ -68,6 +68,7 @@ if (jQuery != undefined && window.postMessage != undefined)
 				{
 					var $el = this.element,
 						$scriptTag = $(scriptTag),
+						$this = this,
 						classes = "",
 						height = null,
 						margin = null,
@@ -106,6 +107,24 @@ if (jQuery != undefined && window.postMessage != undefined)
 
 						if (origin.length > 0)
 						{
+							// Once iFrame loads, perform the following
+							$el.on(
+								"load", 
+								function()
+								{
+									if (!$this._frameInitialLoadComplete)
+									{
+										$this._frameInitialLoadComplete = true;
+									}
+
+
+									$this._registrationComplete = false;
+									
+									$this._registerParentWithFrame.apply($this, []);
+									$this._installResizer();
+								}
+							);
+
 							if (classes.length > 0)
 							{
 								$el.addClass(classes);
@@ -199,20 +218,6 @@ if (jQuery != undefined && window.postMessage != undefined)
 				{
 					var $this = this;
 
-					$(window).on(
-						"load", 
-						function() 
-						{
-							// Delay a moment because the iFrames source may not have actually changed yet in the browser.
-							setTimeout(
-								function()
-								{
-									$this._registerParentWithFrame.apply($this, []);
-								},
-								200
-							);
-						}
-					);
 
 					$(window).on(
 						"messageReceived",
@@ -237,29 +242,110 @@ if (jQuery != undefined && window.postMessage != undefined)
 							resizeMethod = null;
 
 
+						if (typeof window.frameLoader === "undefined")
+						{
+							window.frameLoader = {mutob: null, contentHeight: 0};
+						}
+
+
 						resizeMethod = function()
 						{
-							var docHeight = $(document).height(),
+							var bodyHeight = $(document.body).height(),
+								docHeight = $(document).height(),
 								method = null,
+								newHeight = docHeight,
 								winHeight = $(window).height();
+
+
+							// When to use 'bodyHeight' vs 'docHeight'.  'docHeight' can grow to the size of the iFrame.
+							if (bodyHeight < docHeight && docHeight === winHeight)
+							{
+								newHeight = bodyHeight;
+							}
+
 
 							if (document.documentElement.scrollHeight < docHeight)
 							{
-								docHeight = $(document.documentElement).height() + margin;
+								newHeight = $(document.documentElement).height() + margin;
 							}
 
 
 							// Only resize when the width has changed.
-							if (winHeight < docHeight || (winHeight > docHeight && Math.abs(winHeight - docHeight) > margin))
+							if (
+								(
+									winHeight < newHeight || 
+									(winHeight > newHeight && Math.abs(winHeight - newHeight) > margin)
+								) &&
+								window.frameLoader.contentHeight !== newHeight
+							)
 							{
+								window.frameLoader.contentHeight = newHeight;
+
 								method = function(frameID, height)
 								{
 									$("#" + frameID).height(height);
 								};
 
-								$(window).messenger("execute", method, [fID, docHeight]);
+								$(window).messenger("execute", method, [fID, newHeight]);
 							}
 						};
+
+
+						// Mutation observer is used for items being loaded in from AJAX requests that cause the window to change.
+						window.frameLoader.mutob = new MutationObserver(
+							function(mutations)
+							{
+								mutations.forEach(
+									function(mutation)
+									{
+										if (
+											mutation.addedNodes.length > 0 || 
+											mutation.removedNodes.length > 0 ||
+											(
+												mutation.type === "attributes" &&
+												(
+													(
+														mutation.attributeName === "style" &&
+														(
+															mutation.oldValue.indexOf("display") > -1 ||
+															mutation.oldValue.indexOf("height") > -1 ||
+															mutation.oldValue.indexOf("width") > -1
+														)
+													) ||
+													mutation.attributeName === "src"
+												)
+											)
+										)
+										{
+											resizeMethod();
+										}
+									}
+								);
+							}
+						);
+
+
+						window.frameLoader.mutob.observe(
+							document.documentElement,
+							{
+								attributes: true,
+								characterData: true,
+								childList: true,
+								subtree: true,
+								attributeOldValue: true,
+								characterDataOldValue: true
+							}
+						);
+
+
+						setTimeout(
+							function()
+							{
+								window.frameLoader.mutob.disconnect();
+							},
+							5000
+						);
+
 
 
 						$(window).on("resize", resizeMethod);
@@ -319,6 +405,7 @@ if (jQuery != undefined && window.postMessage != undefined)
 					if (message.action == "registrationComplete" && message.frameID == this._frameID)
 					{
 						this._registrationComplete = true;
+						this._registrationAttempts = 0;
 						this._installResizer();
 					}
 				},
@@ -382,6 +469,7 @@ if (jQuery != undefined && window.postMessage != undefined)
 				/*    Private Values     */
 				/*************************/
 				_frameID: null,
+				_frameInitialLoadComplete: false,
 				_margin: 20,
 				_registrationAttempts: 0,
 				_registrationComplete: false
